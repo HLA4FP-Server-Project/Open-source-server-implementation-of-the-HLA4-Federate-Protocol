@@ -5,7 +5,12 @@ package com.rug.tno;
  */
 public class App {
 
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
+    public static void main(String[] args) throws Exception {
+        Integer port = 15164;
+        if (args.length > 0){
+            port = Integer.parseInt(args[0]);
+        }
+
+        new Server(port).run();
     }
 }
