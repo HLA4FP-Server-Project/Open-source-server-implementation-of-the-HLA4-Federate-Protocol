@@ -10,8 +10,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
  * Handles delimiting a stream into distinct packets. Each packet has a header as specified by section
  * 12.13.4.5 of the FP specification
  */
-public class FpPacketParser extends LengthFieldBasedFrameDecoder {
-    public FpPacketParser() {
+public class FpPacketDecoder extends LengthFieldBasedFrameDecoder {
+    public FpPacketDecoder() {
         super(Integer.MAX_VALUE, 0, 4, -4, 0);
     }
 

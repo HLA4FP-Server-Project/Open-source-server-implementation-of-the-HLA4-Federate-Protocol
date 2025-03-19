@@ -1,8 +1,7 @@
 package com.rug.tno;
 
 import com.rug.tno.connection.TcpConnection;
-import com.rug.tno.layers.DebugLayer;
-import com.rug.tno.layers.FpPacketParser;
+import com.rug.tno.layers.*;
 import com.rug.tno.server.Server;
 
 public class App {
@@ -14,7 +13,13 @@ public class App {
         }
 
         var handler = new TcpConnection(pipeline -> {
-            pipeline.addLast(new FpPacketParser(), new DebugLayer());
+            pipeline.addLast(
+                    new FpPacketDecoder(),
+                    new FpPacketEncoder(),
+                    new MessageParser(),
+                    new DebugPrintLayer(),
+                    new DebugResponseLayer()
+            );
         });
         new Server(port, handler).run();
     }
