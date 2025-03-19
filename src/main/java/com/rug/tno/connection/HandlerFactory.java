@@ -4,7 +4,6 @@ import io.netty.channel.ChannelHandler;
 
 /**
  * Factory to produce channel handlers
- *
  * Each class in the connection module needs to implement this,
  * so it can then be passed down to the server, so it can
  * create the initial connection according to the desired

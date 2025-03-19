@@ -9,7 +9,7 @@ import io.netty.channel.socket.SocketChannel;
  */
 public class TcpConnection implements HandlerFactory {
 
-    private HandlerFactory handlerFactory;
+    private final HandlerFactory handlerFactory;
 
     /**
      * Basic constructor. Takes a single handler factory that constructs client handlers

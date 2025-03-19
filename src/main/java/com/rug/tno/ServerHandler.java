@@ -9,7 +9,7 @@ import io.netty.util.CharsetUtil;
 public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf in = (ByteBuf) msg;
         try{
             System.out.println(in.toString(CharsetUtil.US_ASCII));

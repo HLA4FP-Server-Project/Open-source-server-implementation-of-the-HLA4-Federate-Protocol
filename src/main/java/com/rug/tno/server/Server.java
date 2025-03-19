@@ -12,8 +12,8 @@ import java.net.InetSocketAddress;
 
 public class Server {
 
-    private Integer port;
-    private HandlerFactory channelInitializer;
+    private final Integer port;
+    private final HandlerFactory channelInitializer;
 
     public Server(Integer port, HandlerFactory channelInitializer){
         this.port = port;
