@@ -3,6 +3,8 @@ package com.rug.tno.layers;
 import com.rug.tno.pojo.CtrlNewSession;
 import com.rug.tno.pojo.CtrlNewSessionStatus;
 import com.rug.tno.pojo.FpHeader;
+import com.rug.tno.pojo.HlaCallRequest;
+import hla.rti1516_2024.fedpro.CallRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
@@ -44,6 +46,7 @@ public class MessageParser extends MessageToMessageCodec<Pair<FpHeader,ByteBuf>,
         var header = input.getLeft();
         list.add(switch ((int)header.messageType()) {
             case 1 -> new CtrlNewSession(input.getRight().readUnsignedInt());
+            case 20 -> new HlaCallRequest(CallRequest.parseFrom(input.getRight().nioBuffer()));
             default -> throw new IllegalStateException("Unknown message "+input);
         });
     }
