@@ -247,7 +247,7 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
             }
             case PUBLISHINTERACTIONCLASSREQUEST -> {
                 var pubRequest = request.getPublishInteractionClassRequest();
-                this.rtiAmbassador.subscribeInteractionClass(decodeClassHandle(pubRequest.getInteractionClass()));
+                this.rtiAmbassador.publishInteractionClass(decodeClassHandle(pubRequest.getInteractionClass()));
                 return CallResponse.newBuilder()
                         .setPublishInteractionClassResponse(
                                 PublishInteractionClassResponse.newBuilder().build()
@@ -522,7 +522,7 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                                     .setData(encodeClassHandle(interactionClass))
                                     .build())
                             .setParameterValues(encodeParamHandleMap(parameterValues))
-                            .setUserSuppliedTag(ByteString.copyFrom(userSuppliedTag))
+                            .setUserSuppliedTag(userSuppliedTag == null ? ByteString.EMPTY : ByteString.copyFrom(userSuppliedTag))
                             .setTransportationType(hla.rti1516_2024.fedpro.TransportationTypeHandle.newBuilder()
                                     .setData(encodeTransHandle(transportationType))
                                     .build())
@@ -562,7 +562,7 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                                     .setData(encodeInstanceHandle(objectInstance))
                                     .build())
                             .setAttributeValues(encodeAttrHandleMap(attributeValues))
-                            .setUserSuppliedTag(ByteString.copyFrom(userSuppliedTag))
+                            .setUserSuppliedTag(userSuppliedTag == null ? ByteString.EMPTY : ByteString.copyFrom(userSuppliedTag))
                             .setTransportationType(hla.rti1516_2024.fedpro.TransportationTypeHandle.newBuilder()
                                     .setData(encodeTransHandle(transportationType))
                                     .build())
@@ -583,7 +583,7 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                             .setObjectInstance(ObjectInstanceHandle.newBuilder()
                                     .setData(encodeInstanceHandle(objectInstance))
                                     .build())
-                            .setUserSuppliedTag(ByteString.copyFrom(userSuppliedTag))
+                            .setUserSuppliedTag(userSuppliedTag == null ? ByteString.EMPTY : ByteString.copyFrom(userSuppliedTag))
                             .setProducingFederate(hla.rti1516_2024.fedpro.FederateHandle.newBuilder()
                                     .setData(encodeFedHandle(producingFederate))
                                     .build())
@@ -599,7 +599,7 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                                     .setData(encodeInstanceHandle(objectInstance))
                                     .build())
                             .setAttributes(encodeAttrHandleSet(attributes))
-                            .setUserSuppliedTag(ByteString.copyFrom(userSuppliedTag))
+                            .setUserSuppliedTag(userSuppliedTag == null ? ByteString.EMPTY : ByteString.copyFrom(userSuppliedTag))
                             .build())
                     .build());
         }
