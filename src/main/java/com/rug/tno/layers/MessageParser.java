@@ -1,9 +1,6 @@
 package com.rug.tno.layers;
 
-import com.rug.tno.pojo.CtrlNewSession;
-import com.rug.tno.pojo.CtrlNewSessionStatus;
-import com.rug.tno.pojo.FpHeader;
-import com.rug.tno.pojo.HlaCallRequest;
+import com.rug.tno.pojo.*;
 import hla.rti1516_2024.fedpro.CallRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -11,13 +8,17 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 public class MessageParser extends MessageToMessageCodec<Pair<FpHeader,ByteBuf>,Object> {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, Object object, List<Object> list) throws Exception {
         var buf = channelHandlerContext.alloc().buffer();
+        int messageType = -1;
         if (object instanceof CtrlNewSessionStatus c) {
+            messageType = 2;
             buf.writeByte(switch (c.status()) {
                 case SUCCESS -> 0;
                 case FAILURE_UNSUPPORTED_PROTOCOL_VERSION -> 1;
@@ -27,6 +28,14 @@ public class MessageParser extends MessageToMessageCodec<Pair<FpHeader,ByteBuf>,
             buf.writeByte(0);
             buf.writeByte(0);
             buf.writeByte(0);
+        } else if (object instanceof HlaCallResponse r) {
+            messageType = 21;
+            r.body().writeTo(new OutputStream() {
+                @Override
+                public void write(int b) throws IOException {
+                    buf.writeByte(b);
+                }
+            });
         }
 
         list.add(new ImmutablePair<>(
@@ -35,7 +44,7 @@ public class MessageParser extends MessageToMessageCodec<Pair<FpHeader,ByteBuf>,
                         0,
                         0,
                         -1,
-                        2
+                        messageType
                 ),
                 buf
         ));

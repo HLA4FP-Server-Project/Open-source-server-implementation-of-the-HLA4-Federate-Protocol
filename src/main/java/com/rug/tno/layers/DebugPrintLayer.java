@@ -1,12 +1,20 @@
 package com.rug.tno.layers;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.MessageToMessageCodec;
 
-public class DebugPrintLayer extends ChannelInboundHandlerAdapter {
+import java.util.List;
+
+public class DebugPrintLayer extends MessageToMessageCodec<Object,Object> {
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println(msg);
-        ctx.fireChannelRead(msg);
+    protected void encode(ChannelHandlerContext channelHandlerContext, Object object, List<Object> list) throws Exception {
+        System.out.println("Outbound: "+object);
+        list.add(object);
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext channelHandlerContext, Object object, List<Object> list) throws Exception {
+        System.out.println("Inbound: "+object);
+        list.add(object);
     }
 }
