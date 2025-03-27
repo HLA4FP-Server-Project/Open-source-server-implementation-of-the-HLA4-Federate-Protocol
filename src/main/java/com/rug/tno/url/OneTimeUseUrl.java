@@ -1,15 +1,17 @@
 package com.rug.tno.url;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class that allows for the generation of one-time-use urls. These urls
@@ -17,100 +19,78 @@ import java.util.UUID;
  * Once a connection to one of these urls is opened, the data is freed.
  */
 public class OneTimeUseUrl {
-    private static Map<String, ByteBuffer> URLS = new HashMap<>();
+    private static final OneTimeUseUrl INSTANCE = new OneTimeUseUrl();
 
-    static {
-        URL.setURLStreamHandlerFactory(protocol -> {
-            if (Objects.equals(protocol, "one-time-use-url")) {
-                return new OneTimeUrlStreamHandler();
+    private final Map<String, ByteBuffer> urls = new HashMap<>();
+    private HttpServer server;
+    private Lock serverLock = new ReentrantLock();
+
+    public String registerUrl(ByteBuffer bytes, String filename, String extension) {
+        ensureServerRunning();
+
+        String path;
+        do {
+            var uuid = UUID.randomUUID().toString();
+            path = filename == null ? uuid : uuid+"/"+filename;
+            if (extension != null) {
+                path += "." + extension;
             }
+            path = "/" + path;
+        } while (urls.containsKey(path)); // Ensure we haven't by chance generated the same name twice
+        urls.put(path, bytes);
 
-            return null;
-        });
+        return "http://127.0.0.1:"+server.getAddress().getPort()+path;
+    }
+
+    private void ensureServerRunning() {
+        serverLock.lock();
+        try {
+            if (server == null) {
+                    server = HttpServer.create(new InetSocketAddress(0), 0);
+                    server.createContext("/", this::handleConnection);
+                    server.start();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            serverLock.unlock();
+        }
+    }
+
+    private void handleConnection(HttpExchange exchange) throws IOException {
+        var p = exchange.getRequestURI().getPath();
+        var bytes = urls.get(p);
+        if (bytes == null) {
+            exchange.sendResponseHeaders(404, 0);
+            exchange.getResponseBody().close();
+        } else {
+            bytes.mark();
+            exchange.sendResponseHeaders(200, bytes.remaining());
+            var output = exchange.getResponseBody();
+            var c = Channels.newChannel(output);
+            c.write(bytes);
+            bytes.reset();
+            c.close();
+
+            // One-time-use
+            urls.remove(p);
+            closeServerIfUseless();
+        }
+    }
+
+    private void closeServerIfUseless() {
+        serverLock.lock();
+        try {
+            if (this.urls.isEmpty()) {
+                this.server.stop(10);
+                this.server = null;
+            }
+        } finally {
+            serverLock.unlock();
+        }
     }
 
     public static String generateUrl(ByteBuffer bytes, String filename, String extension) {
-        String name;
-        do {
-            var uuid = UUID.randomUUID().toString();
-            name = filename == null ? uuid : uuid+"/"+filename;
-            if (extension != null) {
-                name += "." + extension;
-            }
-            name = "/" + name;
-        } while (URLS.containsKey(name)); // Ensure we haven't by chance generated the same name twice
-        URLS.put(name, bytes);
-        return "one-time-use-url://"+name;
-    }
-
-    private static class OneTimeUrlStreamHandler extends URLStreamHandler {
-        @Override
-        protected URLConnection openConnection(URL u) throws IOException {
-            var name = u.getPath();
-            var bytes = URLS.get(name);
-            if (bytes == null) {
-                throw new IOException(name+" is not a valid one-time-use url");
-            }
-            // Remove it, since it's one-time-use
-            URLS.remove(name);
-
-            return new ByteUrlConnection(bytes, u);
-        }
-    }
-
-    private static class ByteUrlConnection extends URLConnection {
-        private final ByteBuffer bytes;
-        private final long size;
-
-        private ByteUrlConnection(ByteBuffer bytes, URL url) {
-            super(url);
-            this.bytes = bytes;
-            this.size = bytes.remaining();
-        }
-
-        @Override
-        public void connect() throws IOException {
-
-        }
-
-        @Override
-        public long getContentLengthLong() {
-            return bytes.remaining();
-        }
-
-        @Override
-        public String getContentType() {
-            return "application/octet-stream";
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return new ByteBufferBackedInputStream(this.bytes);
-        }
-    }
-
-    private static class ByteBufferBackedInputStream extends InputStream {
-        private final ByteBuffer buf;
-
-        public ByteBufferBackedInputStream(ByteBuffer buf) {
-            this.buf = buf;
-        }
-
-        public int read() throws IOException {
-            if (!buf.hasRemaining()) {
-                return -1;
-            }
-            return buf.get() & 0xFF;
-        }
-
-        public int read(byte[] bytes, int off, int len)  {
-            if (!buf.hasRemaining()) {
-                return -1;
-            }
-
-            len = Math.min(len, buf.remaining());
-            buf.get(bytes, off, len);
-            return len;
-        }
+        return INSTANCE.registerUrl(bytes, filename, extension);
     }
 }
