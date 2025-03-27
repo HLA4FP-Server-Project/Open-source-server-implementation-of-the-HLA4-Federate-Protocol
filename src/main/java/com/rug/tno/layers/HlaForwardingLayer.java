@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import com.rug.tno.fpdata.FpMessage;
 import com.rug.tno.fpdata.HlaCallRequest;
 import com.rug.tno.fpdata.HlaCallResponse;
+import com.rug.tno.fpdata.HlaCallbackResponse;
 import com.rug.tno.hla_202X.AttributeHandleSetImpl;
 import com.rug.tno.hla_202X.AttributeHandleValueMapImpl;
 import com.rug.tno.hla_202X.ParameterHandleValueMapImpl;
@@ -17,7 +18,6 @@ import hla.rti1516_2024.fedpro.ObjectInstanceHandle;
 import hla.rti1516_2024.fedpro.ParameterHandle;
 import hla.rti1516_202X.*;
 import hla.rti1516_202X.AdditionalSettingsResultCode;
-import hla.rti1516_202X.AttributeHandleValueMap;
 import hla.rti1516_202X.CallbackModel;
 import hla.rti1516_202X.RTIambassador;
 import hla.rti1516_202X.ResignAction;
@@ -66,6 +66,9 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                                 .build()
                         ));
             }
+        } else if (payload instanceof HlaCallbackResponse response) {
+            // TODO, some checks if the federate responded to out callback.
+            //  Unsure what we need to do here exactly
         } else {
             throw new IllegalStateException("Unknown object " + msg + " passed through pipeline. This should not be possible");
         }

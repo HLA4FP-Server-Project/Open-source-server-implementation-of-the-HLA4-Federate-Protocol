@@ -15,6 +15,8 @@ public class FpPayloadRegistry {
         registerPayload(2, CtrlNewSessionStatus.class, CtrlNewSessionStatus::fromByteBuf);
         registerPayload(20, HlaCallRequest.class, HlaCallRequest::fromByteBuf);
         registerPayload(21, HlaCallResponse.class, HlaCallResponse::fromByteBuf);
+        registerPayload(22, HlaCallbackRequest.class, HlaCallbackRequest::fromByteBuf);
+        registerPayload(23, HlaCallbackResponse.class, HlaCallbackResponse::fromByteBuf);
     }
 
     private static <T extends FpPayload> void registerPayload(long payloadId, Class<T> type, Function<ByteBuf, T> factory) {
