@@ -18,6 +18,7 @@ public class FpPacketDecoder extends LengthFieldBasedFrameDecoder {
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         var bytebuf = (ByteBuf)super.decode(ctx, in);
+        if (bytebuf == null) return null;
 
         var packetSize = bytebuf.readUnsignedInt();
         var sequenceNumber = bytebuf.readUnsignedInt();;
