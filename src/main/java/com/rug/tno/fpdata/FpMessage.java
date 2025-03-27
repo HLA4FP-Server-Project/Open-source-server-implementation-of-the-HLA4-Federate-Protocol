@@ -1,9 +1,4 @@
 package com.rug.tno.fpdata;
 
-public record FpMessage(
-        long sequenceNumber,
-        long sessionId,
-        long lastReceivedMsgNo,
-        FpPayload payload
-) {
+public record FpMessage(long sequenceNumber, FpPayload payload) {
 }

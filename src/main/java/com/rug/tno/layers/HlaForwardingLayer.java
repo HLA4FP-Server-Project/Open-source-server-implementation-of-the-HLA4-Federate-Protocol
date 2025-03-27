@@ -1,5 +1,6 @@
 package com.rug.tno.layers;
 
+import com.rug.tno.fpdata.FpMessage;
 import com.rug.tno.fpdata.HlaCallRequest;
 import com.rug.tno.fpdata.HlaCallResponse;
 import hla.rti1516_2024.fedpro.CallRequest;
@@ -27,12 +28,14 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof HlaCallRequest requestMessage) {
+    public void channelRead(ChannelHandlerContext ctx, Object object) throws Exception {
+        var msg = (FpMessage)object;
+        var payload = msg.payload();
+        if (payload instanceof HlaCallRequest requestMessage) {
             var request = requestMessage.body();
             try {
                 var response = handleCallRequest(request);
-                ctx.writeAndFlush(new HlaCallResponse(response));
+                ctx.writeAndFlush(new HlaCallResponse(msg.sequenceNumber(), response));
             } catch (RTIexception e) {
                 // TODO
                 throw new RuntimeException(e);

@@ -1,19 +1,41 @@
 package com.rug.tno.layers;
 
-import com.rug.tno.fpdata.CtrlNewSession;
-import com.rug.tno.fpdata.CtrlNewSessionStatus;
+import com.rug.tno.fpdata.*;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.MessageToMessageCodec;
 
-public class FpSessionLayer extends ChannelInboundHandlerAdapter {
+import java.util.List;
+
+public class FpSessionLayer extends MessageToMessageCodec<FpMessageFrame,FpPayload> {
+    private long lastSeenSequenceId = 0;
+    private long sequenceNumber = 0;
+    private long sessionId = 0;
+
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, FpPayload payload, List<Object> list) throws Exception {
+        list.add(new FpMessageFrame(
+                sequenceNumber++,
+                sessionId,
+                lastSeenSequenceId,
+                payload
+        ));
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, FpMessageFrame message, List<Object> list) throws Exception {
+        this.lastSeenSequenceId = message.sequenceNumber();
+        var payload = message.payload();
+
         // TODO handle reconnections
-        if (msg instanceof CtrlNewSession) {
+        if (payload instanceof CtrlNewSession) {
+            this.sessionId = 123;
             ctx.channel().writeAndFlush(new CtrlNewSessionStatus(CtrlNewSessionStatus.Status.SUCCESS));
         } else {
-            // Pass everything else to the next layer
-            ctx.fireChannelRead(msg);
+            // messages unrelated to session management are forwarded to the next layer
+            list.add(new FpMessage(
+                    message.sequenceNumber(),
+                    message.payload()
+            ));
         }
     }
 }
