@@ -30,6 +30,9 @@ public class FpSessionLayer extends MessageToMessageCodec<FpMessageFrame,FpPaylo
         if (payload instanceof CtrlNewSession) {
             this.sessionId = 123;
             ctx.channel().writeAndFlush(new CtrlNewSessionStatus(CtrlNewSessionStatus.Status.SUCCESS));
+        } else if (payload instanceof CtrlHeartbeat) {
+            // We must respond to heartbeats
+            ctx.channel().writeAndFlush(new CtrlHeartbeatResponse(message.sequenceNumber()));
         } else {
             // messages unrelated to session management are forwarded to the next layer
             list.add(new FpMessage(
