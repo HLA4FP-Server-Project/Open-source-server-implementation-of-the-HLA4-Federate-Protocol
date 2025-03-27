@@ -3,6 +3,7 @@ package com.rug.tno.layers;
 import com.rug.tno.fpdata.FpMessage;
 import com.rug.tno.fpdata.HlaCallRequest;
 import com.rug.tno.fpdata.HlaCallResponse;
+import com.rug.tno.url.OneTimeUseUrl;
 import hla.rti1516_2024.fedpro.*;
 import hla.rti1516_202X.*;
 import hla.rti1516_202X.AdditionalSettingsResultCode;
@@ -14,6 +15,8 @@ import hla.rti1516_202X.exceptions.RTIexception;
 import hla.rti1516_202X.exceptions.RTIinternalError;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+
+import java.util.ArrayList;
 
 public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
     private final String serverAddress;
@@ -77,6 +80,39 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                 this.rtiAmbassador.destroyFederationExecution(destroyRequest.getFederationName());
                 return CallResponse.newBuilder()
                         .setDestroyFederationExecutionResponse(DestroyFederationExecutionResponse.newBuilder())
+                        .build();
+            }
+            case CREATEFEDERATIONEXECUTIONWITHMODULESANDTIMEREQUEST -> {
+                var createRequest = request.getCreateFederationExecutionWithModulesAndTimeRequest();
+                var urls = new ArrayList<String>();
+                createRequest.getFomModules().getFomModuleList().forEach(mo -> {
+                    switch (mo.getFomModuleCase()) {
+                        case URL -> urls.add(mo.getUrl());
+                        case FILE -> urls.add(
+                                OneTimeUseUrl.generateUrl(
+                                        mo.getFile().getContent().asReadOnlyByteBuffer(),
+                                        mo.getFile().getName(),
+                                        null
+                                )
+                        );
+                        case COMPRESSEDMODULE -> urls.add(
+                                OneTimeUseUrl.generateUrl(
+                                        mo.getCompressedModule().asReadOnlyByteBuffer(),
+                                        null,
+                                        "zip"
+                                )
+                        );
+                    }
+                });
+                this.rtiAmbassador.createFederationExecution(
+                        createRequest.getFederationName(),
+                        urls.toArray(String[]::new),
+                        createRequest.getLogicalTimeImplementationName()
+                );
+                return CallResponse.newBuilder()
+                        .setCreateFederationExecutionWithModulesAndTimeResponse(
+                                CreateFederationExecutionWithModulesAndTimeResponse.newBuilder().build()
+                        )
                         .build();
             }
             default -> throw new IllegalStateException("Unknown call request " + request.getCallRequestCase());
