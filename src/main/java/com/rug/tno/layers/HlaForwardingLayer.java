@@ -241,17 +241,17 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
 
     private hla.rti1516_202X.ObjectClassHandle decodeObjHandle(ObjectClassHandle handle) throws RTIexception {
         var factory = this.rtiAmbassador.getObjectClassHandleFactory();
-        return factory.decode(handle.toByteArray(), 0);
+        return factory.decode(handle.getData().toByteArray(), 0);
     }
 
     private hla.rti1516_202X.ParameterHandle decodeParamHandle(ParameterHandle handle) throws RTIexception {
         var factory = this.rtiAmbassador.getParameterHandleFactory();
-        return factory.decode(handle.toByteArray(), 0);
+        return factory.decode(handle.getData().toByteArray(), 0);
     }
 
     private hla.rti1516_202X.InteractionClassHandle decodeClassHandle(InteractionClassHandle handle) throws RTIexception {
         var factory = this.rtiAmbassador.getInteractionClassHandleFactory();
-        return factory.decode(handle.toByteArray(), 0);
+        return factory.decode(handle.getData().toByteArray(), 0);
     }
 
     private static String[] fomModulesToUrls(FomModuleSet set) {
