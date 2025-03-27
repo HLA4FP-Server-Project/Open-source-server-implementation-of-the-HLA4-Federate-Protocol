@@ -18,7 +18,7 @@ public class App {
                 pipeline.addLast(
                         new FpPacketDecoder(),
                         new FpPacketEncoder(),
-                        new MessageParser(),
+                        new FpPayloadCodec(),
                         new DebugPrintLayer(),
                         new FpSessionLayer(),
                         new HlaForwardingLayer("localhost")

@@ -1,6 +1,6 @@
 package com.rug.tno.layers;
 
-import com.rug.tno.pojo.FpHeader;
+import com.rug.tno.fpdata.FpHeader;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;

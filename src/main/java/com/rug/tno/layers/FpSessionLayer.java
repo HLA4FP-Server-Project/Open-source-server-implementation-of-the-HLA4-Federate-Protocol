@@ -1,7 +1,7 @@
 package com.rug.tno.layers;
 
-import com.rug.tno.pojo.CtrlNewSession;
-import com.rug.tno.pojo.CtrlNewSessionStatus;
+import com.rug.tno.fpdata.CtrlNewSession;
+import com.rug.tno.fpdata.CtrlNewSessionStatus;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 

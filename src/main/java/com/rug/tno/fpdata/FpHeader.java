@@ -1,4 +1,4 @@
-package com.rug.tno.pojo;
+package com.rug.tno.fpdata;
 
 /**
  * The fp protocol header, which is sent before each protobuf message.

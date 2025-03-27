@@ -1,7 +1,7 @@
 package com.rug.tno.layers;
 
-import com.rug.tno.pojo.HlaCallRequest;
-import com.rug.tno.pojo.HlaCallResponse;
+import com.rug.tno.fpdata.HlaCallRequest;
+import com.rug.tno.fpdata.HlaCallResponse;
 import hla.rti1516_2024.fedpro.CallRequest;
 import hla.rti1516_2024.fedpro.CallResponse;
 import hla.rti1516_2024.fedpro.ConnectResponse;
