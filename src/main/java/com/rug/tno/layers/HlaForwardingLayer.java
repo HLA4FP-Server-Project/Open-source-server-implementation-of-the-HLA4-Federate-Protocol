@@ -3,10 +3,12 @@ package com.rug.tno.layers;
 import com.rug.tno.fpdata.FpMessage;
 import com.rug.tno.fpdata.HlaCallRequest;
 import com.rug.tno.fpdata.HlaCallResponse;
-import hla.rti1516_2024.fedpro.CallRequest;
-import hla.rti1516_2024.fedpro.CallResponse;
-import hla.rti1516_2024.fedpro.ConnectResponse;
+import hla.rti1516_2024.fedpro.*;
 import hla.rti1516_202X.*;
+import hla.rti1516_202X.AdditionalSettingsResultCode;
+import hla.rti1516_202X.CallbackModel;
+import hla.rti1516_202X.RTIambassador;
+import hla.rti1516_202X.RtiConfiguration;
 import hla.rti1516_202X.encoding.EncoderFactory;
 import hla.rti1516_202X.exceptions.RTIexception;
 import hla.rti1516_202X.exceptions.RTIinternalError;
@@ -37,8 +39,15 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                 var response = handleCallRequest(request);
                 ctx.writeAndFlush(new HlaCallResponse(msg.sequenceNumber(), response));
             } catch (RTIexception e) {
-                // TODO
-                throw new RuntimeException(e);
+                ctx.writeAndFlush(new HlaCallResponse(
+                        msg.sequenceNumber(),
+                        CallResponse.newBuilder()
+                                .setExceptionData(ExceptionData.newBuilder()
+                                        .setExceptionName(e.name())
+                                        .setDetails(e.getMessage())
+                                        .build())
+                                .build()
+                        ));
             }
         } else {
             throw new IllegalStateException("Unknown object " + msg + " passed through pipeline. This should not be possible");
@@ -61,6 +70,13 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                                                 .setAdditionalSettingsResultCode(convertASRC(result.additionalSettingsResultCode))
                                                 .build())
                                         .build())
+                        .build();
+            }
+            case DESTROYFEDERATIONEXECUTIONREQUEST -> {
+                var destroyRequest = request.getDestroyFederationExecutionRequest();
+                this.rtiAmbassador.destroyFederationExecution(destroyRequest.getFederationName());
+                return CallResponse.newBuilder()
+                        .setDestroyFederationExecutionResponse(DestroyFederationExecutionResponse.newBuilder())
                         .build();
             }
             default -> throw new IllegalStateException("Unknown call request " + request.getCallRequestCase());
