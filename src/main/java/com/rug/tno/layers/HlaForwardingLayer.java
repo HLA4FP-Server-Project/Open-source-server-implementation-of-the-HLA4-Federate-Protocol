@@ -84,29 +84,9 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
             }
             case CREATEFEDERATIONEXECUTIONWITHMODULESANDTIMEREQUEST -> {
                 var createRequest = request.getCreateFederationExecutionWithModulesAndTimeRequest();
-                var urls = new ArrayList<String>();
-                createRequest.getFomModules().getFomModuleList().forEach(mo -> {
-                    switch (mo.getFomModuleCase()) {
-                        case URL -> urls.add(mo.getUrl());
-                        case FILE -> urls.add(
-                                OneTimeUseUrl.generateUrl(
-                                        mo.getFile().getContent().asReadOnlyByteBuffer(),
-                                        mo.getFile().getName(),
-                                        null
-                                )
-                        );
-                        case COMPRESSEDMODULE -> urls.add(
-                                OneTimeUseUrl.generateUrl(
-                                        mo.getCompressedModule().asReadOnlyByteBuffer(),
-                                        null,
-                                        "zip"
-                                )
-                        );
-                    }
-                });
                 this.rtiAmbassador.createFederationExecution(
                         createRequest.getFederationName(),
-                        urls.toArray(String[]::new),
+                        fomModulesToUrls(createRequest.getFomModules()),
                         createRequest.getLogicalTimeImplementationName()
                 );
                 return CallResponse.newBuilder()
@@ -115,8 +95,45 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                         )
                         .build();
             }
+            case JOINFEDERATIONEXECUTIONWITHMODULESREQUEST -> {
+                var joinRequest = request.getJoinFederationExecutionWithModulesRequest();
+                this.rtiAmbassador.joinFederationExecution(
+                        joinRequest.getFederateType(),
+                        joinRequest.getFederationName(),
+                        fomModulesToUrls(joinRequest.getAdditionalFomModules())
+                );
+                return CallResponse.newBuilder()
+                        .setJoinFederationExecutionWithModulesResponse(
+                                JoinFederationExecutionWithModulesResponse.newBuilder().build()
+                        )
+                        .build();
+            }
             default -> throw new IllegalStateException("Unknown call request " + request.getCallRequestCase());
         }
+    }
+
+    private static String[] fomModulesToUrls(FomModuleSet set) {
+        var urls = new ArrayList<String>();
+        set.getFomModuleList().forEach(mo -> {
+            switch (mo.getFomModuleCase()) {
+                case URL -> urls.add(mo.getUrl());
+                case FILE -> urls.add(
+                        OneTimeUseUrl.generateUrl(
+                                mo.getFile().getContent().asReadOnlyByteBuffer(),
+                                mo.getFile().getName(),
+                                null
+                        )
+                );
+                case COMPRESSEDMODULE -> urls.add(
+                        OneTimeUseUrl.generateUrl(
+                                mo.getCompressedModule().asReadOnlyByteBuffer(),
+                                null,
+                                "zip"
+                        )
+                );
+            }
+        });
+        return urls.toArray(String[]::new);
     }
 
     private static hla.rti1516_2024.fedpro.AdditionalSettingsResultCode convertASRC(AdditionalSettingsResultCode original) {
