@@ -1,10 +1,7 @@
 package com.rug.tno.layers;
 
 import com.google.protobuf.ByteString;
-import com.rug.tno.fpdata.FpMessage;
-import com.rug.tno.fpdata.HlaCallRequest;
-import com.rug.tno.fpdata.HlaCallResponse;
-import com.rug.tno.fpdata.HlaCallbackResponse;
+import com.rug.tno.fpdata.*;
 import com.rug.tno.hla_202X.AttributeHandleSetImpl;
 import com.rug.tno.hla_202X.AttributeHandleValueMapImpl;
 import com.rug.tno.hla_202X.ParameterHandleValueMapImpl;
@@ -18,13 +15,24 @@ import hla.rti1516_2024.fedpro.ObjectInstanceHandle;
 import hla.rti1516_2024.fedpro.ParameterHandle;
 import hla.rti1516_202X.*;
 import hla.rti1516_202X.AdditionalSettingsResultCode;
+import hla.rti1516_202X.AttributeHandleValueMap;
 import hla.rti1516_202X.CallbackModel;
+import hla.rti1516_202X.FederateHandle;
+import hla.rti1516_202X.MessageRetractionHandle;
+import hla.rti1516_202X.OrderType;
+import hla.rti1516_202X.ParameterHandleValueMap;
 import hla.rti1516_202X.RTIambassador;
+import hla.rti1516_202X.RegionHandleSet;
 import hla.rti1516_202X.ResignAction;
 import hla.rti1516_202X.RtiConfiguration;
+import hla.rti1516_202X.TransportationTypeHandle;
 import hla.rti1516_202X.encoding.EncoderFactory;
+import hla.rti1516_202X.exceptions.FederateInternalError;
 import hla.rti1516_202X.exceptions.RTIexception;
 import hla.rti1516_202X.exceptions.RTIinternalError;
+import hla.rti1516_202X.time.LogicalTime;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.commons.lang3.function.TriConsumer;
@@ -33,6 +41,7 @@ import java.util.ArrayList;
 import java.util.function.Function;
 
 public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
+    private Channel channel;
     private final String serverAddress;
     private final RTIambassador rtiAmbassador;
     private final EncoderFactory encoderFactory;
@@ -44,6 +53,12 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
         this.rtiAmbassador = rtiFactory.getRtiAmbassador();
         this.encoderFactory = rtiFactory.getEncoderFactory();
         this.ambassador = new FederateAmbassador(); // TODO
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        // TODO change when sessions are implemented properly
+        this.channel = ctx.channel();
     }
 
     @Override
@@ -324,6 +339,29 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
         );
     }
 
+    private hla.rti1516_2024.fedpro.AttributeHandleSet encodeAttrHandleSet(hla.rti1516_202X.AttributeHandleSet handleSet) {
+        var result = hla.rti1516_2024.fedpro.AttributeHandleSet.newBuilder();
+        handleSet.forEach((v) -> {
+            result.addAttributeHandle(AttributeHandle.newBuilder()
+                    .setData(encodeAttrHandle(v))
+                    .build());
+        });
+        return result.build();
+    }
+
+    private hla.rti1516_2024.fedpro.AttributeHandleValueMap encodeAttrHandleMap(hla.rti1516_202X.AttributeHandleValueMap handleSet) {
+        var result = hla.rti1516_2024.fedpro.AttributeHandleValueMap.newBuilder();
+        handleSet.forEach((key, val) -> {
+            result.addAttributeHandleValue(AttributeHandleValue.newBuilder()
+                    .setAttributeHandle(AttributeHandle.newBuilder()
+                            .setData(encodeAttrHandle(key))
+                            .build())
+                    .setValue(ByteString.copyFrom(val))
+                    .build());
+        });
+        return result.build();
+    }
+
     private ByteString encodeAttrHandle(hla.rti1516_202X.AttributeHandle handle) {
         return encodeHandle(
                 handle,
@@ -338,6 +376,34 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                 hla.rti1516_202X.ObjectClassHandle::encodedLength,
                 hla.rti1516_202X.ObjectClassHandle::encode
         );
+    }
+
+    private ByteString encodeTransHandle(hla.rti1516_202X.TransportationTypeHandle handle) {
+        return encodeHandle(
+                handle,
+                hla.rti1516_202X.TransportationTypeHandle::encodedLength,
+                hla.rti1516_202X.TransportationTypeHandle::encode
+        );
+    }
+
+    private ByteString encodeFedHandle(hla.rti1516_202X.FederateHandle handle) {
+        return encodeHandle(
+                handle,
+                hla.rti1516_202X.FederateHandle::encodedLength,
+                hla.rti1516_202X.FederateHandle::encode
+        );
+    }
+
+    private hla.rti1516_2024.fedpro.ParameterHandleValueMap encodeParamHandleMap(hla.rti1516_202X.ParameterHandleValueMap handleSet) {
+        var result = hla.rti1516_2024.fedpro.ParameterHandleValueMap.newBuilder();
+        handleSet.forEach((key, val) -> {
+            result.addParameterHandleValue(ParameterHandleValue
+                    .newBuilder()
+                    .setParameterHandle(ParameterHandle.newBuilder().setData(encodeParamHandle(key)).build())
+                    .setValue(ByteString.copyFrom(val))
+            );
+        });
+        return result.build();
     }
 
     private ByteString encodeParamHandle(hla.rti1516_202X.ParameterHandle handle) {
@@ -444,6 +510,98 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
     }
 
     private class FederateAmbassador extends NullFederateAmbassador {
+        private void send(CallbackRequest request) {
+            channel.writeAndFlush(new HlaCallbackRequest(request));
+        }
 
+        @Override
+        public void receiveInteraction(hla.rti1516_202X.InteractionClassHandle interactionClass, ParameterHandleValueMap parameterValues, byte[] userSuppliedTag, TransportationTypeHandle transportationType, FederateHandle producingFederate, RegionHandleSet optionalSentRegions) throws FederateInternalError {
+            send(CallbackRequest.newBuilder()
+                    .setReceiveInteraction(ReceiveInteraction.newBuilder()
+                            .setInteractionClass(InteractionClassHandle.newBuilder()
+                                    .setData(encodeClassHandle(interactionClass))
+                                    .build())
+                            .setParameterValues(encodeParamHandleMap(parameterValues))
+                            .setUserSuppliedTag(ByteString.copyFrom(userSuppliedTag))
+                            .setTransportationType(hla.rti1516_2024.fedpro.TransportationTypeHandle.newBuilder()
+                                    .setData(encodeTransHandle(transportationType))
+                                    .build())
+                            .setProducingFederate(hla.rti1516_2024.fedpro.FederateHandle.newBuilder()
+                                    .setData(encodeFedHandle(producingFederate))
+                                    .build())
+                            .setOptionalSentRegions(ConveyedRegionSet.newBuilder()
+                                    // TODO
+                                    .build())
+                            .build())
+                    .build());
+        }
+
+        @Override
+        public void objectInstanceNameReservationSucceeded(String objectInstanceName) throws FederateInternalError {
+            send(CallbackRequest.newBuilder()
+                    .setObjectInstanceNameReservationSucceeded(ObjectInstanceNameReservationSucceeded.newBuilder()
+                            .setObjectInstanceName(objectInstanceName)
+                            .build())
+                    .build());
+        }
+
+        @Override
+        public void objectInstanceNameReservationFailed(String objectInstanceName) throws FederateInternalError {
+            send(CallbackRequest.newBuilder()
+                    .setObjectInstanceNameReservationFailed(ObjectInstanceNameReservationFailed.newBuilder()
+                            .setObjectInstanceName(objectInstanceName)
+                            .build())
+                    .build());
+        }
+
+        @Override
+        public void reflectAttributeValues(hla.rti1516_202X.ObjectInstanceHandle objectInstance, AttributeHandleValueMap attributeValues, byte[] userSuppliedTag, TransportationTypeHandle transportationType, FederateHandle producingFederate, RegionHandleSet optionalSentRegions) throws FederateInternalError {
+            send(CallbackRequest.newBuilder()
+                    .setReflectAttributeValues(ReflectAttributeValues.newBuilder()
+                            .setObjectInstance(ObjectInstanceHandle.newBuilder()
+                                    .setData(encodeInstanceHandle(objectInstance))
+                                    .build())
+                            .setAttributeValues(encodeAttrHandleMap(attributeValues))
+                            .setUserSuppliedTag(ByteString.copyFrom(userSuppliedTag))
+                            .setTransportationType(hla.rti1516_2024.fedpro.TransportationTypeHandle.newBuilder()
+                                    .setData(encodeTransHandle(transportationType))
+                                    .build())
+                            .setProducingFederate(hla.rti1516_2024.fedpro.FederateHandle.newBuilder()
+                                    .setData(encodeFedHandle(producingFederate))
+                                    .build())
+                            .setOptionalSentRegions(ConveyedRegionSet.newBuilder()
+                                    // TODO
+                                    .build())
+                            .build())
+                    .build());
+        }
+
+        @Override
+        public void removeObjectInstance(hla.rti1516_202X.ObjectInstanceHandle objectInstance, byte[] userSuppliedTag, FederateHandle producingFederate) throws FederateInternalError {
+            send(CallbackRequest.newBuilder()
+                    .setRemoveObjectInstance(RemoveObjectInstance.newBuilder()
+                            .setObjectInstance(ObjectInstanceHandle.newBuilder()
+                                    .setData(encodeInstanceHandle(objectInstance))
+                                    .build())
+                            .setUserSuppliedTag(ByteString.copyFrom(userSuppliedTag))
+                            .setProducingFederate(hla.rti1516_2024.fedpro.FederateHandle.newBuilder()
+                                    .setData(encodeFedHandle(producingFederate))
+                                    .build())
+                            .build())
+                    .build());
+        }
+
+        @Override
+        public void provideAttributeValueUpdate(hla.rti1516_202X.ObjectInstanceHandle objectInstance, hla.rti1516_202X.AttributeHandleSet attributes, byte[] userSuppliedTag) throws FederateInternalError {
+            send(CallbackRequest.newBuilder()
+                    .setProvideAttributeValueUpdate(ProvideAttributeValueUpdate.newBuilder()
+                            .setObjectInstance(ObjectInstanceHandle.newBuilder()
+                                    .setData(encodeInstanceHandle(objectInstance))
+                                    .build())
+                            .setAttributes(encodeAttrHandleSet(attributes))
+                            .setUserSuppliedTag(ByteString.copyFrom(userSuppliedTag))
+                            .build())
+                    .build());
+        }
     }
 }
