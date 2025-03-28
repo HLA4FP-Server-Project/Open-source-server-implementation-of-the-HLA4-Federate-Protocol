@@ -6,12 +6,6 @@ The new HLA version (4) includes a Federate Protocol, which defines a universal 
 
 An open-source, re-usable HLA4FP server is of critical value to the M&S community. It's an ambitious project but also an opportunity to make real impact.
 
-**PRACTICAL CONSIDERATIONS**
-
-All deliverables are to be licensed under MIT. The project should be run as much as possible in the open on GitHub, including project management and issue tracking. As the project will depend on some knowledge from TNO, copyright and intellectual property will belong to TNO. Students will receive a Letter of Recommendation if their work is of sufficient quality.
-
-We will investigate (but cannot promise at this time) whether we can find funds to compensate students for their hard work. This could be, for example, by offering a formal paid internship contract at TNO (Certificate of Good Conduct required).
-
 # GOALS
 - A developer-friendly, working HLA4FP server in Java
 - The implementation must be robust; it should have extensive automated testing and high code quality
