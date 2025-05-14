@@ -28,6 +28,12 @@
   </dependencyManagement>
 
   <dependencies>
+    <!-- The IEEE java interface (which we packaged and published to maven) -->
+    <dependency>
+      <groupId>io.github.hla4fp-server-project</groupId>
+      <artifactId>5161-202X</artifactId>
+      <version>0.0.1</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
