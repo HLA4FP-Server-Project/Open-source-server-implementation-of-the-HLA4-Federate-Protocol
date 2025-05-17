@@ -69,7 +69,10 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.4.0</version>
         <configuration>
-          <mainClass>com.rug.tno.App</mainClass>
+          <executable>java</executable>
+          <commandlineArgs>
+            -classpath "%classpath${path.separator}${project.basedir}/lib/*" com.rug.tno.App
+          </commandlineArgs>
         </configuration>
       </plugin>
       <plugin>
