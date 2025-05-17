@@ -1,0 +1,1 @@
+Place your rti's java library here. It'll be automatically loaded when running the project with `mvn exec:exec`
