@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import hla.rti1516_2024.fedpro.CallRequest;
 import hla.rti1516_2024.fedpro.CallbackRequest;
 import io.netty.buffer.ByteBuf;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,5 +30,10 @@ public record HlaCallbackRequest(CallbackRequest body) implements FpPayload {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public @NonNull MessageDirection direction() {
+        return MessageDirection.FederateBound;
     }
 }

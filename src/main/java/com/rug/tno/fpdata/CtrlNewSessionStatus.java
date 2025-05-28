@@ -1,6 +1,7 @@
 package com.rug.tno.fpdata;
 
 import io.netty.buffer.ByteBuf;
+import org.jspecify.annotations.NonNull;
 
 public record CtrlNewSessionStatus(Status status) implements FpPayload {
     public static CtrlNewSessionStatus fromByteBuf(ByteBuf buf) {
@@ -25,6 +26,11 @@ public record CtrlNewSessionStatus(Status status) implements FpPayload {
             buf.writeByte(0);
             buf.writeByte(0);
             buf.writeByte(0);
+    }
+
+    @Override
+    public @NonNull MessageDirection direction() {
+        return MessageDirection.FederateBound;
     }
 
     public enum Status {

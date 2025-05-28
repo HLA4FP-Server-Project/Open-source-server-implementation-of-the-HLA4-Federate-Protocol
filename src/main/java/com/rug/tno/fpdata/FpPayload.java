@@ -1,6 +1,7 @@
 package com.rug.tno.fpdata;
 
 import io.netty.buffer.ByteBuf;
+import org.jspecify.annotations.NonNull;
 
 public interface FpPayload {
     void writeToByteBuf(ByteBuf buf);
@@ -13,4 +14,7 @@ public interface FpPayload {
     default boolean createsSession() {
         return false;
     }
+
+    @NonNull
+    MessageDirection direction();
 }

@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import hla.rti1516_2024.fedpro.CallResponse;
 import hla.rti1516_2024.fedpro.CallbackResponse;
 import io.netty.buffer.ByteBuf;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,5 +34,10 @@ public record HlaCallbackResponse(long responseTo, CallbackResponse body) implem
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public @NonNull MessageDirection direction() {
+        return MessageDirection.RtiBound;
     }
 }
