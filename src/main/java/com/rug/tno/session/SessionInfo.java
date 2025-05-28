@@ -14,6 +14,7 @@ import java.util.Objects;
 public class SessionInfo {
     /**
      * A unique id representing this session
+     * 8 bytes
      */
     private final long id;
     /**

@@ -14,7 +14,12 @@ public class SessionManager {
     }
 
     public SessionInfo createNewSession() {
-        var id = random.nextLong();
+        // Generate a random id
+        long id;
+        do {
+            id = random.nextLong();
+        } while (id == 0); // zero is an illegal id
+
         return new SessionInfo(id);
     }
 }
