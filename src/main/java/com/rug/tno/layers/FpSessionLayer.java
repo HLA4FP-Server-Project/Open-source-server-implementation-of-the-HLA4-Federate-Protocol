@@ -57,21 +57,6 @@ public class FpSessionLayer extends MessageToMessageCodec<FpMessageFrame,FpPaylo
     protected void decode(ChannelHandlerContext ctx, FpMessageFrame message, List<Object> list) throws Exception {
         var session = ctx.channel().attr(CHANNEL_SESSION).get();
 
-        // Check if any rules from 12.13.4.6 are being broken
-        if (session == null) {
-            // The federate does not have a session yet, the only thing
-            // it is allowed to do in this case is to send a message to create a connection (12.13.4.6 a1)
-            if (!message.payload().createsSession()) {
-                onInvalidMessage(ctx.channel());
-            }
-        } else {
-            // This is not strictly in the spec, but it doesn't make sense to
-            // create a session if you already have one
-            if (message.payload().createsSession()) {
-                onInvalidMessage(ctx.channel());
-            }
-        }
-
         // Handle session messages
         if (session != null) {
             session.setLastReceivedMessageId(message.sessionId());
@@ -110,9 +95,5 @@ public class FpSessionLayer extends MessageToMessageCodec<FpMessageFrame,FpPaylo
             // Something unexpected went wrong
             channel.writeAndFlush(new CtrlNewSessionStatus(CtrlNewSessionStatus.Status.FAILURE_OTHER));
         }
-    }
-
-    private void onInvalidMessage(Channel channel) {
-        channel.close();
     }
 }

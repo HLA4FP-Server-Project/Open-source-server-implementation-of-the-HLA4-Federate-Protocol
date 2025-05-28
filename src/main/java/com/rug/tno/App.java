@@ -23,6 +23,7 @@ public class App {
                         new FpPacketEncoder(),
                         new FpPayloadCodec(),
                         new DebugPrintLayer(),
+                        new FpValidationLayer(),
                         new FpSessionLayer(sessionManager),
                         new HlaForwardingLayer("localhost")
                 );
