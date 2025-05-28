@@ -17,4 +17,13 @@ public interface FpPayload {
 
     @NonNull
     MessageDirection direction();
+
+    /**
+     * @return Which category this message belongs to.
+     * Specifically for the purposes of 12.13.4.4: "Only HLA service messages shall
+     * be considered when determining the last received or oldest available message
+     * sequence number excluding any control messages"
+     */
+    @NonNull
+    MessageCategory category();
 }

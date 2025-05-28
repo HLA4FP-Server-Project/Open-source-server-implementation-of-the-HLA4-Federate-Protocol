@@ -19,4 +19,9 @@ public record CtrlHeartbeatResponse(long responseTo) implements FpPayload {
     public @NonNull MessageDirection direction() {
         return MessageDirection.FederateBound;
     }
+
+    @Override
+    public @NonNull MessageCategory category() {
+        return MessageCategory.Control;
+    }
 }

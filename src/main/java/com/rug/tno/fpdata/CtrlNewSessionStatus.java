@@ -33,6 +33,11 @@ public record CtrlNewSessionStatus(Status status) implements FpPayload {
         return MessageDirection.FederateBound;
     }
 
+    @Override
+    public @NonNull MessageCategory category() {
+        return MessageCategory.Control;
+    }
+
     public enum Status {
         SUCCESS,
         FAILURE_UNSUPPORTED_PROTOCOL_VERSION,

@@ -22,4 +22,9 @@ public record CtrlNewSession(long versionId) implements FpPayload {
     public @NonNull MessageDirection direction() {
         return MessageDirection.RtiBound;
     }
+
+    @Override
+    public @NonNull MessageCategory category() {
+        return MessageCategory.Control;
+    }
 }

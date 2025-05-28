@@ -40,4 +40,9 @@ public record HlaCallbackResponse(long responseTo, CallbackResponse body) implem
     public @NonNull MessageDirection direction() {
         return MessageDirection.RtiBound;
     }
+
+    @Override
+    public @NonNull MessageCategory category() {
+        return MessageCategory.HlaService;
+    }
 }

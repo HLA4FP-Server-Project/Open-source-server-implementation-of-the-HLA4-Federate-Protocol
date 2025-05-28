@@ -36,4 +36,9 @@ public record HlaCallbackRequest(CallbackRequest body) implements FpPayload {
     public @NonNull MessageDirection direction() {
         return MessageDirection.FederateBound;
     }
+
+    @Override
+    public @NonNull MessageCategory category() {
+        return MessageCategory.HlaService;
+    }
 }
