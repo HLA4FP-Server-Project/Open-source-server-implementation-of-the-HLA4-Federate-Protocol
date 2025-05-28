@@ -13,14 +13,20 @@ import java.util.Objects;
  */
 public class SessionInfo {
     /**
-     * A unique id representing this session
-     * 8 bytes
+     * A unique id representing this session.
+     * All 8 bytes of this number are used.
      */
     private final long id;
     /**
-     * The id of the message which was last sent by the federate.
+     * The sequence number of the last message we received from the federate.
+     * Only 4 bytes of this number are used.
      */
     private long lastReceivedMessageId;
+    /**
+     * The current sequence number used for this session. Each message sent gets a sequence number, and
+     * this increases monotonically.
+     * Only 4 bytes of this number are used.
+     */
     private long sequenceNumber;
 
     public SessionInfo(long id) {
