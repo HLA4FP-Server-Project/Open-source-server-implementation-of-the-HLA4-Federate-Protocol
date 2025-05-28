@@ -18,30 +18,48 @@ public class FpSessionLayer extends MessageToMessageCodec<FpMessageFrame,FpPaylo
     public static final AttributeKey<SessionInfo> CHANNEL_SESSION = AttributeKey.valueOf("channel_session");
     private final SessionManager sessionMngr;
 
-    // TODO these need to be moved to the session info:
-    private long lastSeenSequenceId = 0;
-    private long sequenceNumber = 0;
-
     public FpSessionLayer(SessionManager sessionMngr) {
         this.sessionMngr = sessionMngr;
     }
 
     @Override
     protected void encode(ChannelHandlerContext ctx, FpPayload payload, List<Object> list) throws Exception {
+        // In the context of a channel, we should either
+        //  * Send all messages with a non-null session attribute
+        //  * Send only a single messages (informing a session could not be created)
+        // The IEEE spec currently enforces this. But if this rule is ever broken, it'll
+        // cause multiple messages to be sent with the same sequence number. It's unclear what
+        // sequence number we should be using whilst sending messages without a session. So if
+        // we're ever doing that something went wrong
+
+        // The spec currently states that no messages can be exchanged without a valid session,
+        // except control messages setting up such a connection (12.13.4.6).
+        // It also states the LRM field should ignore non-hla messages
+        // The way we handle the Last Received Message field relies on this. The LRM field should be
+        // invalid iff there's no last received message. Which, in addition to the previous two statements,
+        // means that we can conclude the LRM field should always be invalid if there's no session.
+
         var session = ctx.channel().attr(CHANNEL_SESSION).get();
         var sessionId = session == null ? 0 : session.id();
+        // -1 is an invalid sequence number. We're supposed to send that if there are no previous messages
+        var lastReceivedMessageId = session == null ? -1 : session.lastReceivedMessageId();
+        var sequenceNumber = session == null ? 0 : session.getNextSequenceNumber();
 
         list.add(new FpMessageFrame(
-                sequenceNumber++,
+                sequenceNumber,
                 sessionId,
-                lastSeenSequenceId,
+                lastReceivedMessageId,
                 payload
         ));
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, FpMessageFrame message, List<Object> list) throws Exception {
-        this.lastSeenSequenceId = message.sequenceNumber();
+        var session = ctx.channel().attr(CHANNEL_SESSION).get();
+        if (session != null) {
+            session.setLastReceivedMessageId(message.sessionId());
+        }
+
         var payload = message.payload();
 
         // TODO handle reconnections

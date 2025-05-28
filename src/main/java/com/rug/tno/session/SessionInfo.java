@@ -1,7 +1,5 @@
 package com.rug.tno.session;
 
-import io.netty.util.AttributeKey;
-
 import java.util.Objects;
 
 /**
@@ -14,14 +12,41 @@ import java.util.Objects;
  * </p>
  */
 public class SessionInfo {
+    /**
+     * A unique id representing this session
+     */
     private final long id;
+    /**
+     * The id of the message which was last sent by the federate.
+     */
+    private long lastReceivedMessageId;
+    private long sequenceNumber;
 
     public SessionInfo(long id) {
         this.id = id;
+        this.lastReceivedMessageId = -1;
+        this.sequenceNumber = 0;
     }
 
     public long id() {
         return id;
+    }
+
+    public long lastReceivedMessageId() {
+        return lastReceivedMessageId;
+    }
+
+    public void setLastReceivedMessageId(long lastReceivedMessageId) {
+        this.lastReceivedMessageId = lastReceivedMessageId;
+    }
+
+    public long getNextSequenceNumber() {
+        var sqn = sequenceNumber;
+        this.sequenceNumber++;
+        if (this.sequenceNumber > 0x7fffffffL) {
+            this.sequenceNumber = 0;
+        }
+        return sqn;
     }
 
     @Override
