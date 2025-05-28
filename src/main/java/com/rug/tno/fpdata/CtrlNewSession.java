@@ -11,4 +11,9 @@ public record CtrlNewSession(long versionId) implements FpPayload {
     public void writeToByteBuf(ByteBuf buf) {
         buf.writeInt((int)this.versionId);
     }
+
+    @Override
+    public boolean createsSession() {
+        return true;
+    }
 }
