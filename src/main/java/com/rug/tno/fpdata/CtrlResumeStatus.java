@@ -3,15 +3,15 @@ package com.rug.tno.fpdata;
 import io.netty.buffer.ByteBuf;
 import org.jspecify.annotations.NonNull;
 
-public record CtrlNewSessionStatus(NewSessionStatusCode status) implements FpPayload {
-    public static CtrlNewSessionStatus fromByteBuf(ByteBuf buf) {
+public record CtrlResumeStatus(NewSessionStatusCode status) implements FpPayload {
+    public static CtrlResumeStatus fromByteBuf(ByteBuf buf) {
         long status = buf.readUnsignedInt();
-        return new CtrlNewSessionStatus(NewSessionStatusCode.fromBytes(status));
+        return new CtrlResumeStatus(NewSessionStatusCode.fromBytes(status));
     }
 
     @Override
     public void writeToByteBuf(ByteBuf buf) {
-            buf.writeInt((int)status.toBytes());
+        buf.writeInt((int)status.toBytes());
     }
 
     @Override

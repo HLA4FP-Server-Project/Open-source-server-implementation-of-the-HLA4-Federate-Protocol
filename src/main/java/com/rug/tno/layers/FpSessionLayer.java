@@ -83,17 +83,17 @@ public class FpSessionLayer extends MessageToMessageCodec<FpMessageFrame,FpPaylo
         try {
             if (channel.attr(CHANNEL_SESSION).get() != null) {
                 // Can't create a session if the channel is already associated with one
-                channel.writeAndFlush(new CtrlNewSessionStatus(CtrlNewSessionStatus.Status.FAILURE_OTHER));
+                channel.writeAndFlush(new CtrlNewSessionStatus(NewSessionStatusCode.FAILURE_OTHER));
             } else {
                 // Create a new session and associate it with this channel
                 var session = sessionMngr.createNewSession();
                 channel.attr(CHANNEL_SESSION).set(session);
                 // Inform the client that session creation was a success
-                channel.writeAndFlush(new CtrlNewSessionStatus(CtrlNewSessionStatus.Status.SUCCESS));
+                channel.writeAndFlush(new CtrlNewSessionStatus(NewSessionStatusCode.SUCCESS));
             }
         } catch (Throwable e) {
             // Something unexpected went wrong
-            channel.writeAndFlush(new CtrlNewSessionStatus(CtrlNewSessionStatus.Status.FAILURE_OTHER));
+            channel.writeAndFlush(new CtrlNewSessionStatus(NewSessionStatusCode.FAILURE_OTHER));
         }
     }
 }
