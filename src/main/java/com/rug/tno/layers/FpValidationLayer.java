@@ -1,6 +1,7 @@
 package com.rug.tno.layers;
 
 import com.rug.tno.fpdata.CtrlNewSession;
+import com.rug.tno.fpdata.CtrlResumeRequest;
 import com.rug.tno.fpdata.FpMessageFrame;
 import com.rug.tno.fpdata.MessageDirection;
 import io.netty.channel.Channel;
@@ -56,9 +57,12 @@ public class FpValidationLayer extends MessageToMessageCodec<FpMessageFrame,FpMe
 
         // (12.13.4.6 a8)
         if (!(message.payload() instanceof CtrlNewSession)) {
-            if (isSequenceNumberInvalid(message.sequenceNumber())) {
-                onInvalidMessage(ctx.channel());
-                return;
+            // Hack. I disagree with what Pitch is doing here and don't think it's up to spec
+            if (!(message.payload() instanceof CtrlResumeRequest)) {
+                if (isSequenceNumberInvalid(message.sequenceNumber())) {
+                    onInvalidMessage(ctx.channel());
+                    return;
+                }
             }
         } else {
             if (message.sessionId() != 0) {
