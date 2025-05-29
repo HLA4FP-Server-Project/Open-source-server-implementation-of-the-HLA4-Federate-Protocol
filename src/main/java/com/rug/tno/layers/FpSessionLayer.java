@@ -55,13 +55,6 @@ public class FpSessionLayer extends MessageToMessageCodec<FpMessageFrame,FpPaylo
 
     @Override
     protected void decode(ChannelHandlerContext ctx, FpMessageFrame message, List<Object> list) throws Exception {
-        var session = ctx.channel().attr(CHANNEL_SESSION).get();
-
-        // Handle session messages
-        if (session != null) {
-            session.setLastReceivedMessageId(message.sessionId());
-        }
-
         var payload = message.payload();
 
         // TODO handle reconnections

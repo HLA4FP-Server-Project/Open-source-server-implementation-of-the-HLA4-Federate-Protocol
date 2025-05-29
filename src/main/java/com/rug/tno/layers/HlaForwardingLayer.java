@@ -65,13 +65,16 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object object) throws Exception {
         var msg = (FpMessage)object;
         var payload = msg.payload();
+        var session = ctx.channel().attr(FpSessionLayer.CHANNEL_SESSION).get();
+
         if (payload instanceof HlaCallRequest requestMessage) {
             var request = requestMessage.body();
+            FpPayload response;
             try {
-                var response = handleCallRequest(request);
-                ctx.writeAndFlush(new HlaCallResponse(msg.sequenceNumber(), response));
+                var protobufResponse = handleCallRequest(request);
+                response = new HlaCallResponse(msg.sequenceNumber(), protobufResponse);
             } catch (RTIexception e) {
-                ctx.writeAndFlush(new HlaCallResponse(
+                response = new HlaCallResponse(
                         msg.sequenceNumber(),
                         CallResponse.newBuilder()
                                 .setExceptionData(ExceptionData.newBuilder()
@@ -79,8 +82,12 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
                                         .setDetails(e.getMessage())
                                         .build())
                                 .build()
-                        ));
+                        );
             }
+            // We've handled the message, we can now safely mark it as received
+            session.markMessageReceived(msg.sequenceNumber());
+            // And now we can send the response
+            ctx.writeAndFlush(response);
         } else if (payload instanceof HlaCallbackResponse response) {
             // TODO, some checks if the federate responded to out callback.
             //  Unsure what we need to do here exactly

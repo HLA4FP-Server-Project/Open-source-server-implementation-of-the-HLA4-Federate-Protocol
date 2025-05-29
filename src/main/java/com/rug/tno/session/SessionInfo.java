@@ -43,7 +43,10 @@ public class SessionInfo {
         return lastReceivedMessageId;
     }
 
-    public void setLastReceivedMessageId(long lastReceivedMessageId) {
+    /**
+     * Marks a federate message as being received
+     */
+    public void markMessageReceived(long lastReceivedMessageId) {
         this.lastReceivedMessageId = lastReceivedMessageId;
     }
 
