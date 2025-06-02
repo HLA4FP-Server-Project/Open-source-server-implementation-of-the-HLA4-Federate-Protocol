@@ -3,6 +3,7 @@ package com.rug.tno;
 import com.rug.tno.connection.TcpConnection;
 import com.rug.tno.layers.*;
 import com.rug.tno.server.Server;
+import com.rug.tno.session.SessionManager;
 import hla.rti1516_202X.exceptions.RTIinternalError;
 
 public class App {
@@ -13,6 +14,8 @@ public class App {
             port = Integer.parseInt(args[0]);
         }
 
+        var sessionManager = new SessionManager();
+
         var handler = new TcpConnection(pipeline -> {
             try {
                 pipeline.addLast(
@@ -20,7 +23,8 @@ public class App {
                         new FpPacketEncoder(),
                         new FpPayloadCodec(),
                         new DebugPrintLayer(),
-                        new FpSessionLayer(),
+                        new FpValidationLayer(),
+                        new FpSessionLayer(sessionManager),
                         new HlaForwardingLayer("localhost")
                 );
             } catch (RTIinternalError e) {

@@ -15,6 +15,8 @@ public class FpPayloadRegistry {
         registerPayload(2, CtrlNewSessionStatus.class, CtrlNewSessionStatus::fromByteBuf);
         registerPayload(3, CtrlHeartbeat.class, CtrlHeartbeat::fromByteBuf);
         registerPayload(4, CtrlHeartbeatResponse.class, CtrlHeartbeatResponse::fromByteBuf);
+        registerPayload(10, CtrlResumeRequest.class, CtrlResumeRequest::fromByteBuf);
+        registerPayload(11, CtrlResumeStatus.class, CtrlResumeStatus::fromByteBuf);
         registerPayload(20, HlaCallRequest.class, HlaCallRequest::fromByteBuf);
         registerPayload(21, HlaCallResponse.class, HlaCallResponse::fromByteBuf);
         registerPayload(22, HlaCallbackRequest.class, HlaCallbackRequest::fromByteBuf);

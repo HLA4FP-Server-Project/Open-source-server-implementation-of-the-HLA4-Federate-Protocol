@@ -3,14 +3,15 @@ package com.rug.tno.fpdata;
 import io.netty.buffer.ByteBuf;
 import org.jspecify.annotations.NonNull;
 
-public record CtrlNewSession(long versionId) implements FpPayload {
-    public static CtrlNewSession fromByteBuf(ByteBuf buf) {
-        return new CtrlNewSession(buf.readUnsignedInt());
+public record CtrlResumeRequest(long lrrSequenceNumber, long oafSequenceNumber) implements FpPayload {
+    public static CtrlResumeRequest fromByteBuf(ByteBuf buf) {
+        return new CtrlResumeRequest(buf.readUnsignedInt(), buf.readUnsignedInt());
     }
 
     @Override
     public void writeToByteBuf(ByteBuf buf) {
-        buf.writeInt((int)this.versionId);
+        buf.writeInt((int)this.lrrSequenceNumber);
+        buf.writeInt((int)this.oafSequenceNumber);
     }
 
     @Override
