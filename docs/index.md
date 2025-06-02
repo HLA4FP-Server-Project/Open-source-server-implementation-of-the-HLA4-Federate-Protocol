@@ -29,4 +29,4 @@ graph LR
 
 ## Drawio
 Mkdocs is set up to allow importing drawio files
-![A model view diagram of the project](diagrams/model_view.drawio)
+![](diagrams/model_view.drawio)
