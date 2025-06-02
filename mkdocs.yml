@@ -1,0 +1,5 @@
+site_name: Opensource Server Implementation of the HLA4 Federate Protocol
+plugins:
+  - search
+  - mermaid2
+  - drawio
