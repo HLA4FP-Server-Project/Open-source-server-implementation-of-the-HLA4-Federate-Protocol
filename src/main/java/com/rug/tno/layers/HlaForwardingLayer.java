@@ -55,6 +55,13 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
         this.ambassador = new FederateAmbassador(); // TODO
     }
 
+    public HlaForwardingLayer(String serverAddress, RTIambassador rtiAmbassador, EncoderFactory encoder) {
+        this.serverAddress = serverAddress;
+        this.rtiAmbassador = rtiAmbassador;
+        this.encoderFactory = encoder;
+        this.ambassador = new FederateAmbassador(); // TODO
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         // TODO change when sessions are implemented properly
