@@ -2,18 +2,11 @@ package com.rug.tno;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.rug.tno.layers.*;
-import com.rug.tno.session.SessionManager;
-import hla.rti1516_202X.RTIambassador;
-import hla.rti1516_202X.encoding.EncoderFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.Arrays;
 
@@ -97,9 +90,8 @@ public class ConnectionTest {
 
     @Test
     public void testNewSession() {
-        var mockRtiAmbassador = Mockito.mock(RTIambassador.class);
-        var mockEncoder = Mockito.mock(EncoderFactory.class);
-        var channel = CommonTestUtil.setupTestPipeline(mockRtiAmbassador, mockEncoder);
+        var testServer = CommonTestUtil.setupTestServer();
+        var channel = testServer.channel();
 
         // Send a new session packet
         channel.writeInbound(Unpooled.copiedBuffer(NEW_SESSION_PACKET));
