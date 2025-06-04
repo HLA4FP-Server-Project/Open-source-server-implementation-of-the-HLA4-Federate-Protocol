@@ -105,7 +105,7 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
 
     private CallResponse handleCallRequest(CallRequest request) throws RTIexception {
         switch (request.getCallRequestCase()) {
-            case CONNECTWITHCONFIGURATIONREQUEST -> {
+            case CONNECTWITHCONFIGURATIONREQUEST, CONNECTREQUEST -> {
                 var connectRequest = request.getConnectWithConfigurationRequest();
                 var settings = RtiConfiguration.createConfiguration();
                 settings = settings.withRtiAddress(this.serverAddress);
