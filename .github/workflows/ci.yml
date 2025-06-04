@@ -22,4 +22,4 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Run tests
-        run: ./mvn -B test
+        run: ./mvnw -B test
