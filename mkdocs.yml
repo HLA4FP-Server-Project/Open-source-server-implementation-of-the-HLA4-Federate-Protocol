@@ -3,3 +3,5 @@ plugins:
   - search
   - mermaid2
   - drawio
+markdown_extensions:
+  - footnotes
