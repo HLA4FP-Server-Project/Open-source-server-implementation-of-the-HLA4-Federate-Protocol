@@ -41,8 +41,8 @@ public class FpValidationLayer extends MessageToMessageCodec<FpMessageFrame,FpMe
                 return;
             }
         } else {
-            // This is not strictly in the spec, but it doesn't make sense to
-            // create a session if you already have one
+            // Disallow creating a session if you've already got one.
+            // (12.13.5, "One transport layer connection shall support exactly one federate session")
             if (message.payload().createsSession()) {
                 onInvalidMessage(ctx.channel());
                 return;
