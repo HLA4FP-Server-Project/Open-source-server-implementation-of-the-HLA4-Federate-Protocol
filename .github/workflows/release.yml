@@ -6,7 +6,7 @@ on:
       - published
 
 jobs:
-  upload:
+  upload_jar:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,3 +26,36 @@ jobs:
         with:
           files: 'target/*-full.jar'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+  push_docker:
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/HLA4FP-Server-Project/Open-source-server-implementation-of-the-HLA4-Federate-Protocol
+          tags: |
+            type=raw,value=latest
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Build and push docker image
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
