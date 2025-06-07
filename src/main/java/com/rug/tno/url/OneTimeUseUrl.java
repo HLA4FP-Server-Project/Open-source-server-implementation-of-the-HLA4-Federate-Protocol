@@ -30,6 +30,9 @@ public class OneTimeUseUrl {
 
         String path;
         do {
+            // TODO is there a small security risk here? If another application can somehow guess the
+            // UUID and the port of the server before the url is accessed, it could leak any data.
+            // Maybe this should use a cryptographic random to be sure.
             var uuid = UUID.randomUUID().toString();
             path = filename == null ? uuid : uuid+"/"+filename;
             if (extension != null) {
