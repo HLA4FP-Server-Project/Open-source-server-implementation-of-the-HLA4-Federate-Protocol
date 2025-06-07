@@ -23,3 +23,10 @@ start reconnecting as soon as a connection dies.
 
 To conclude, there's a clear sensical solution to what should be done here: the old connection should be terminated.
 But it is strange that the spec does not appear to explicitly mention anything on the topic.
+
+## Session Ids
+Each and every single packet sent between the rti and the federate contains the session id. I am not aware of any
+practical purpose for doing so. The spec already forbids a single socket connection from hosting multiple sessions.
+Thus, this number will always be the same for every single packet. It can potentially be used to detect if a connection
+has been hijacked, but TCP already [has provisions](<https://medium.com/@SpoofIMEI/tcp-connection-hijacking-deep-dive-9bbe03fce9a9>)
+to prevent this from happening.
