@@ -80,7 +80,7 @@ public class FpSessionLayer extends MessageToMessageCodec<FpMessageFrame,FpPaylo
             } else {
                 // Create a new session and associate it with this channel
                 var session = sessionMngr.createNewSession();
-                channel.attr(CHANNEL_SESSION).set(session);
+                setSessionForChannel(channel, session);
                 // Inform the client that session creation was a success
                 channel.writeAndFlush(new CtrlNewSessionStatus(NewSessionStatusCode.SUCCESS));
             }
@@ -88,5 +88,9 @@ public class FpSessionLayer extends MessageToMessageCodec<FpMessageFrame,FpPaylo
             // Something unexpected went wrong
             channel.writeAndFlush(new CtrlNewSessionStatus(NewSessionStatusCode.FAILURE_OTHER));
         }
+    }
+
+    public static void setSessionForChannel(Channel channel, SessionInfo sessionInfo) {
+        channel.attr(CHANNEL_SESSION).set(sessionInfo);
     }
 }

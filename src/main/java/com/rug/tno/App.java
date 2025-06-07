@@ -5,6 +5,7 @@ import com.rug.tno.layers.*;
 import com.rug.tno.server.Server;
 import com.rug.tno.session.SessionManager;
 import hla.rti1516_202X.exceptions.RTIinternalError;
+import io.netty.channel.ChannelPipeline;
 
 public class App {
 
@@ -18,19 +19,24 @@ public class App {
 
         var handler = new TcpConnection(pipeline -> {
             try {
-                pipeline.addLast(
-                        new FpPacketDecoder(),
-                        new FpPacketEncoder(),
-                        new FpPayloadCodec(),
-                        new DebugPrintLayer(),
-                        new FpValidationLayer(),
-                        new FpSessionLayer(sessionManager),
-                        new HlaForwardingLayer("localhost")
-                );
+                var forwarder = new HlaForwardingLayer("localhost");
+                configurePipeline(pipeline, sessionManager, forwarder);
             } catch (RTIinternalError e) {
                 throw new RuntimeException(e);
             }
         });
         new Server(port, handler).run();
+    }
+
+    public static void configurePipeline(ChannelPipeline pipeline, SessionManager sessionManager, HlaForwardingLayer forwardingLayer) {
+        pipeline.addLast(
+                new FpPacketDecoder(),
+                new FpPacketEncoder(),
+                new FpPayloadCodec(),
+                new DebugPrintLayer(),
+                new FpValidationLayer(),
+                new FpSessionLayer(sessionManager),
+                forwardingLayer
+        );
     }
 }

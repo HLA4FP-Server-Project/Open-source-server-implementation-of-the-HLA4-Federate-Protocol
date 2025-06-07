@@ -55,6 +55,13 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
         this.ambassador = new FederateAmbassador(); // TODO
     }
 
+    public HlaForwardingLayer(String serverAddress, RTIambassador rtiAmbassador, EncoderFactory encoder) {
+        this.serverAddress = serverAddress;
+        this.rtiAmbassador = rtiAmbassador;
+        this.encoderFactory = encoder;
+        this.ambassador = new FederateAmbassador(); // TODO
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         // TODO change when sessions are implemented properly
@@ -98,7 +105,7 @@ public class HlaForwardingLayer extends ChannelInboundHandlerAdapter {
 
     private CallResponse handleCallRequest(CallRequest request) throws RTIexception {
         switch (request.getCallRequestCase()) {
-            case CONNECTWITHCONFIGURATIONREQUEST -> {
+            case CONNECTWITHCONFIGURATIONREQUEST, CONNECTREQUEST -> {
                 var connectRequest = request.getConnectWithConfigurationRequest();
                 var settings = RtiConfiguration.createConfiguration();
                 settings = settings.withRtiAddress(this.serverAddress);
