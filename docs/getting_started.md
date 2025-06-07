@@ -55,10 +55,20 @@ OA3 <--> RTIA;
 OB <--> RTIB;
 ```
 
-## Running the server (with  the jar file)
+## Running the server (with the jar file)
 The server can be run using the provided jar file, which can be
 downloaded from [Github releases](https://github.com/HLA4FP-Server-Project/Open-source-server-implementation-of-the-HLA4-Federate-Protocol/releases).
 When running the jar, please include your RTI's SDK in the classpath.
+
+## Running the server (through docker)
+Docker images are available at `ghcr.io/HLA4FP-Server-Project/Open-source-server-implementation-of-the-HLA4-Federate-Protocol`.
+There are tags for each version, as well as a `latest` tag. It does still require you to add your RTI's libraries. The docker
+image is configured to add any jar file inside of `/app/lib/` to the classpath. Here's an example of how you would run
+the docker image:
+
+```shell
+docker run -v ./directory/with/rti/libs/:/app/lib -p 15164:15164 --rm ghcr.io/HLA4FP-Server-Project/Open-source-server-implementation-of-the-HLA4-Federate-Protocol
+```
 
 ## Valid RTI's
 The Open-source-server-implementation-of-the-HLA4-Federate-Protocol supports any RTI which supports HLA4. It relies
